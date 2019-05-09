@@ -25,7 +25,6 @@ class EventHandler:
     def __init__(self, paddle, ball):  # TODO: change params to one App param
         self.paddle = paddle
         self.ball = ball
-        self.state = None
         self.thread = None
 
     # TODO: rename to input handler
@@ -34,15 +33,15 @@ class EventHandler:
         state = str(event.type)
         if char == "s":
             if state == "KeyPress":
-                self.state = "moveUp"
+                self.paddle.state = "moveUp"
             else:
-                self.state = "still"
+                self.paddle.state = "still"
 
         elif char == "w":
             if state == "KeyPress":
-                self.state = "moveDown"
+                self.paddle.state = "moveDown"
             else:
-                self.state = "still"
+                self.paddle.state = "still"
 
         else:
             pass
@@ -76,20 +75,17 @@ class EventHandler:
     def _run(self):
         iters = 0
         startTime = time()
-        # while t - startTime < 1:
         while True:
-            if self.state == "moveUp":
+            if self.paddle.state == "moveUp":
                 if self.paddle.y + self.paddle.step + 20 < 600:
                     self.paddle.moveUp()
 
-            elif self.state == "moveDown":
+            elif self.paddle.state == "moveDown":
                 if self.paddle.y - self.paddle.step - 20 >= 0:
                     self.paddle.moveDown()
 
             self.ball.move()
             self.detectCollisions()
-            # t = time()
-            # iters += 1
             newTime = time()
             iters += 1
             if newTime - startTime > 1:
@@ -97,8 +93,6 @@ class EventHandler:
                 iters = 0
                 startTime = newTime
             sleep(0.02)
-        # print("iterations:", iters)
-        # canvas.update_idletasks()
 
     def run(self):
         self.thread = Thread(target=self._run)
