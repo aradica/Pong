@@ -18,12 +18,10 @@ def center_window(root):
     root.geometry('%dx%d+%d+%d' % (w, h, x, y))
 
 
-# TODO: rename class to GameEngine?
-
-
-class EventHandler:
-    def __init__(self, paddle, ball):  # TODO: change params to one App param
-        self.paddle = paddle
+class PongEngine:
+    def __init__(self, leftPaddle, rightPaddle, ball):  # TODO: change params to one App param
+        self.leftPaddle = leftPaddle
+        self.rightPaddle = rightPaddle
         self.ball = ball
         self.thread = None
 
@@ -31,20 +29,31 @@ class EventHandler:
     def eventHandler(self, event):
         char = event.char
         state = str(event.type)
+
+        # Left paddle
         if char == "s":
             if state == "KeyPress":
-                self.paddle.state = "moveUp"
+                self.leftPaddle.state = "moveUp"
             else:
-                self.paddle.state = "still"
+                self.leftPaddle.state = "still"
 
         elif char == "w":
             if state == "KeyPress":
-                self.paddle.state = "moveDown"
+                self.leftPaddle.state = "moveDown"
             else:
-                self.paddle.state = "still"
+                self.leftPaddle.state = "still"
 
-        else:
-            pass
+        # Right paddle
+        if char == "k":
+            if state == "KeyPress":
+                self.rightPaddle.state = "moveUp"
+            else:
+                self.rightPaddle.state = "still"
+        elif char == "i":
+            if state == "KeyPress":
+                self.rightPaddle.state = "moveDown"
+            else:
+                self.rightPaddle.state = "still"
         print(event.type, event.char)
 
     def detectCollisions(self):
@@ -60,29 +69,47 @@ class EventHandler:
                 self.ball.bounce("x")
 
         else:
+            # leftPaddle
             # Paddle - the +3 is from the ball
-            if self.ball.y - self.paddle.y <= 23:
+            if self.ball.y - self.leftPaddle.y <= 23:
                 if self.ball.vx > 0:
-                    # and abs(self.ball.y - self.paddle.y) <= 20:
-                    if 5 <= self.paddle.x - self.ball.x <= 10:
+                    # and abs(self.ball.y - self.leftPaddle.y) <= 20:
+                    if 5 <= self.leftPaddle.x - self.ball.x <= 10:
                         self.ball.bounce("y")
                 else:
-                    if 5 <= self.ball.x - self.paddle.x <= 10:
+                    if 5 <= self.ball.x - self.leftPaddle.x <= 10:
                         self.ball.bounce("y")
 
                     # Check win/lose
+            # Right paddle TODO: bug fix when ball is behind
+            elif self.ball.y - self.rightPaddle.y <= 23:
+                if self.ball.vx > 0:
+                    if 5 <= self.rightPaddle.x - self.ball.x <= 10:
+                        self.ball.bounce("y")
+                else:
+                    if 5 <= self.ball.x - self.rightPaddle.x <= 10:
+                        self.ball.bounce("y")
 
     def _run(self):
         iters = 0
         startTime = time()
         while True:
-            if self.paddle.state == "moveUp":
-                if self.paddle.y + self.paddle.step + 20 < 600:
-                    self.paddle.moveUp()
+            #Left paddle check position
+            if self.leftPaddle.state == "moveUp":
+                if self.leftPaddle.y + self.leftPaddle.step + 20 < 600:
+                    self.leftPaddle.moveUp()
 
-            elif self.paddle.state == "moveDown":
-                if self.paddle.y - self.paddle.step - 20 >= 0:
-                    self.paddle.moveDown()
+            elif self.leftPaddle.state == "moveDown":
+                if self.leftPaddle.y - self.leftPaddle.step - 20 >= 0:
+                    self.leftPaddle.moveDown()
+            #Right paddle check position
+            if self.rightPaddle.state == "moveUp":
+                if self.rightPaddle.y + self.rightPaddle.step + 20  < 600:
+                    self.rightPaddle.moveUp()
+
+            elif self.rightPaddle.state == "moveDown":
+                if self.rightPaddle.y - self.rightPaddle.step - 20 >= 0:
+                    self.rightPaddle.moveDown()
 
             self.ball.move()
             self.detectCollisions()
@@ -182,22 +209,26 @@ if __name__ == "__main__":
     # Prototyping
     root = tk.Tk()
     root.title("Pong")
+    # root.attributes("-topmost", True)
 
     canvas = tk.Canvas(root, bg="black")
 
     canvas.pack(fill="both", expand=True)
 
-    paddle = Paddle(50, 50, canvas)
-    paddle.draw()
+    leftPaddle = Paddle(50, 50, canvas)
+    leftPaddle.draw()
+
+    rightPaddle = Paddle(750, 50, canvas)
+    rightPaddle.draw()
 
     ball = Ball(100, 100, 1, 1, canvas)
     ball.draw()
 
-    game = EventHandler(paddle, ball)
+    game = PongEngine(leftPaddle, rightPaddle, ball)
 
     center_window(root)
     canvas.bind("<Key>", game.eventHandler)
-    # TODO - method in EventHandler
+    # TODO - method in PongEngine
     canvas.bind("<KeyRelease>", game.eventHandler)
     canvas.focus_set()
     # root.protocol('WM_DELETE_WINDOW', lambda: terminate(root, game))
